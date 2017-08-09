@@ -19,6 +19,17 @@ def generate_ovpn(metric):
           " and also add 'max-routes %d', which takes a line, to the head of the file." % (len(results)+20)
 
 
+def generate_routes(iface):
+    results = fetch_ip_data()  
+    rfile=open('routes','w')
+    for ip,mask,_ in results:
+        route_item="%s %s %s\n"%(ip,mask,iface)
+        rfile.write(route_item)
+    rfile.close()
+    print "Usage: Append the content of the newly created routes to /etc/network/routes," \
+          " total routes %d" % (len(results)+20)
+
+
 def generate_linux(metric):
     results = fetch_ip_data()
     upscript_header=textwrap.dedent("""\
@@ -195,6 +206,7 @@ def fetch_ip_data():
     #fetch data from apnic
     print "Fetching data from apnic.net, it might take a few minutes, please wait..."
     url=r'https://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-latest'
+#   url=r'http://192.168.1.254/delegated-apnic-latest'
     data=urllib2.urlopen(url).read()
     
     cnregex=re.compile(r'apnic\|cn\|ipv4\|[0-9\.]+\|[0-9]+\|[0-9]+\|a.*',re.IGNORECASE)
@@ -247,6 +259,8 @@ if __name__=='__main__':
     
     if args.platform.lower() == 'openvpn':
         generate_ovpn(args.metric)
+    elif args.platform.lower() == 'routes':
+        generate_routes('___Interface___')
     elif args.platform.lower() == 'linux':
         generate_linux(args.metric)
     elif args.platform.lower() == 'mac' or args.platform.lower() == 'darwin':
